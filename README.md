@@ -33,25 +33,28 @@ uv sync
 
 ### 4. 配置mcp server
 
+如何支持 stdio，我尝试直接使用 stdio 后发现总是失败，raycast 调用失败。
+可以本地启动 sse 模式，然后通过 https://github.com/supercorp-ai/supergateway 来实现转发成为 stdio，mcp json 为：
+
 ```json
 {
-    "mcpServers": {
-        "xhs-mcp": {
-            "command": "uv",
-            "args": [
-                "--directory",
-                "/Users/xxx/xhs-mcp",
-                "run",
-                "main.py"
-            ],
-            "env": {
-                "XHS_COOKIE": "xxxx"
-            }
-        }
+  "mcpServers": {
+    "xhs-server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "supergateway",
+        "--sse",
+        "http://0.0.0.0:9009/sse"
+      ]
     }
+  }
 }
 ```
 
+
 ## 免责声明
 本项目仅用于学习交流，禁止用于其他用途，任何涉及商业盈利目的均不得使用，否则风险自负。
+
+Fork from https://github.com/jobsonlook/xhs-mcp
 
