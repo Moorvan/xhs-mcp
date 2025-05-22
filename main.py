@@ -1,30 +1,26 @@
-from typing import Any, List, Dict, Optional
-import asyncio
-import json
 import os
 from datetime import datetime
+
+from dotenv import load_dotenv
+from loguru import logger
 from mcp.server.fastmcp import FastMCP, Context
-
-import requests
 from api.xhs_api import XhsApi
-import logging
 from urllib.parse import urlparse, parse_qs
-import argparse
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 
-parser = argparse.ArgumentParser()
+# 日志文件路径（可根据需要修改）
+LOG_DIR = os.path.join(os.path.dirname(__file__), 'log')
+LOG_FILE = os.path.join(LOG_DIR, 'xhs_mcp.log')
 
-parser.add_argument("--type", type=str, default='stdio')
-parser.add_argument("--port", type=int, default=8809)
+os.makedirs(LOG_DIR, exist_ok=True)
+logger.add(LOG_FILE, rotation="200 KB", retention="3 days", encoding="utf-8", enqueue=True, backtrace=True,
+           diagnose=True)
 
-args = parser.parse_args()
 
-mcp = FastMCP("小红书", port=args.port)
+mcp = FastMCP("小红书", port=9009)
 
-xhs_cookie = os.getenv('XHS_COOKIE')
-
+xhs_cookie = os.getenv("COOKIE")
 xhs_api = XhsApi(cookie=xhs_cookie)
 
 
@@ -186,4 +182,4 @@ async def post_comment(comment: str, note_id: str) -> str:
 
 if __name__ == "__main__":
     logger.info("mcp run")
-    mcp.run(transport=args.type)
+    mcp.run(transport='sse')

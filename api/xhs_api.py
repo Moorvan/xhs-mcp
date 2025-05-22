@@ -5,7 +5,6 @@ from collections.abc import Mapping
 from urllib.parse import urlencode
 import requests
 from curl_cffi.requests import AsyncSession, Response
-
 from typing import Dict
 import os
 import execjs
@@ -13,6 +12,9 @@ from numbers import Integral
 from typing import Iterable, List, Optional, Tuple
 import random
 import base64
+
+from loguru import logger
+
 
 class XhsApi:
     def __init__(self,cookie):
@@ -45,6 +47,11 @@ class XhsApi:
             session=self.init_session()
         if headers is None:
             headers = {}
+            
+        # 记录请求信息
+        logger.info("request")
+        logger.info(f"request: {method} {uri} {params} {data}, with {self._cookie}")
+        
         response: Response = await session.request(
             method=method,
             url=f"{self._base_url}{uri}",
@@ -55,10 +62,17 @@ class XhsApi:
             stream=True,
             headers=headers
         )
-
-
+        
+        # 记录响应信息
+        logger.info(f"response status: {response.status_code}, headers: {response.headers}")
+        
         content = await response.acontent()
-        return json.loads(content)
+        logger.info(f"response content length: {len(content)}")
+        try:
+            return json.loads(content)
+        except Exception as e:
+            logger.error(f"Request error: {str(e)}")
+            return {"success": False, "error": str(e)}
     def base36encode(self,number: Integral, alphabet: Iterable[str] = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ') -> str:
 
         base36 = ''

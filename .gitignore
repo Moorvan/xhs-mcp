@@ -10,3 +10,8 @@ test
 # Virtual environments
 .venv
 .idea
+.env
+log/
+scripts/
+config.json
+nohup.out
