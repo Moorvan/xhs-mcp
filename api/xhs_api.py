@@ -48,19 +48,30 @@ class XhsApi:
         if headers is None:
             headers = {}
             
-        # 记录请求信息
-        logger.info("request")
-        logger.info(f"request: {method} {uri} {params} {data}, with {self._cookie}")
+        # 构建完整请求信息
+        final_url = f"{self._base_url}{uri}"
+        if params:
+            final_url = f"{final_url}?{urlencode(params)}"
+        final_headers = {**self._headers, **(headers or {})}
+        final_cookies = self._parse_cookie(self._cookie)
+        
+        # 记录完整请求信息
+        logger.info("发送请求的详细信息:")
+        logger.info(f"Method: {method}")
+        logger.info(f"URL: {final_url}")
+        logger.info(f"Headers: {final_headers}")
+        logger.info(f"Cookies: {final_cookies}")
+        logger.info(f"Data: {data}")
         
         response: Response = await session.request(
             method=method,
-            url=f"{self._base_url}{uri}",
+            url=final_url,
             params=params,
             json=data,
-            cookies=self._parse_cookie(self._cookie),
+            cookies=final_cookies,
             quote=False,
             stream=True,
-            headers=headers
+            headers=final_headers
         )
         
         # 记录响应信息
@@ -69,6 +80,7 @@ class XhsApi:
         content = await response.acontent()
         logger.info(f"response content length: {len(content)}")
         try:
+            logger.info(f"response content: {content}")
             return json.loads(content)
         except Exception as e:
             logger.error(f"Request error: {str(e)}")
